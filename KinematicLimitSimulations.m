@@ -3,12 +3,7 @@ clc;
 clear;
 close all;
 
-%% =========================================
-%  1. CREATE ROBOT MODEL
-% ==========================================
-
-% Standard DH parameters
-% Units: meters and radians
+%% 1. Define robot using DH parameters
 
 J(1) = Link('d', 0.2, 'a',  0,   'alpha', pi/2);
 J(2) = Link('d', 0,   'a', -0.6, 'alpha', 0);
@@ -17,158 +12,138 @@ J(4) = Link('d', 0.2, 'a',  0,   'alpha', pi/2);
 J(5) = Link('d', 0.1, 'a',  0,   'alpha', -pi/2);
 J(6) = Link('d', 0.1, 'a',  0,   'alpha', 0);
 
-% Create robot
 robot = SerialLink(J, 'name', 'Industrial Robot');
 
-%% =========================================
-%  2. DEFINE CARTESIAN POSITIONS
-% ==========================================
+%% 2. Define required TCP positions (x, y, z)
 
-%homeTCP = [0.45 0.60 0.45];
-%ready   = [0.45 1.00 0.57];
-%Pick up = [0.00 1,00 0.02];
-%retract = [0.30 0.65 0.70];
-%middle = [0.60 0 0.7];
-%deliver = [0.00 1.20 0.20];
+P = [
+    0.45  0.60  0.45;  % Home TCP
+    0.45  1.00  0.57;  % Ready
+    0.00  1.00  0.02;  % Pick up
+    0.30  0.65  0.70;  % Retract
+    -0.60  0.00  0.70;  % Middle
+    0.00  -1.20  0.20   % Deliver
+];
 
-% START POSITION (meters)
-start_x = 0.3;
-start_y = 0.65;
-start_z = 0.7;
+pointNames = {
+    'Home TCP'
+    'Ready'
+    'Pick up'
+    'Retract'
+    'Middle'
+    'Deliver'
+};
 
-% TARGET POSITION (meters)
-target_x = 0.6;
-target_y = 0;
-target_z = 0.7;
+%% 3. Calculate inverse kinematics for each position
 
-% Create transformation matrices
-T_start = transl(start_x, start_y, start_z);
-T_target = transl(target_x, target_y, target_z);
+% Only constrain X, Y and Z.
+% Orientation is not specified in the assignment's coordinates.
+mask = [1 1 1 0 0 0];
 
+q_waypoints = zeros(6,6);
 
-%% =========================================
-%  3. INVERSE KINEMATICS
-% ==========================================
+% Initial joint configuration
+q0 = zeros(1,6);
 
-% Initial guess
-q_guess = zeros(1,6);
+for i = 1:6
 
-% Calculate starting configuration
-q_start = robot.ikine(T_start, ...
-    'q0', q_guess, ...
-    'mask', [1 1 1 0 0 0]);
+    % Create target transformation
+    T = transl(P(i,1), P(i,2), P(i,3));
 
-% Calculate target configuration
-q_target = robot.ikine(T_target, ...
-    'q0', q_start, ...
-    'mask', [1 1 1 0 0 0]);
+    % Calculate inverse kinematics
+    q = robot.ikine(T, 'q0', q0, 'mask', mask);
 
-% Check if solutions were found
-if isempty(q_start) || isempty(q_target)
-    error('Inverse kinematics did not find a solution.');
+    % Check that a solution was found
+    if any(~isfinite(q))
+        error('IK failed at position: %s', pointNames{i});
+    end
+
+    % Check actual position using forward kinematics
+    T_actual = robot.fkine(q);
+    p_actual = transl(T_actual);
+    p_actual = p_actual(:).';
+
+    positionError = norm(p_actual - P(i,:));
+
+    if positionError > 1e-3
+        error('Position error too large at: %s', pointNames{i});
+    end
+
+    % Save joint angles
+    q_waypoints(i,:) = q;
+
+    % Use previous solution as next initial guess
+    q0 = q;
+
+    fprintf('%s: IK solution found. Error = %.6f m\n', ...
+        pointNames{i}, positionError);
 end
 
+%% 4. Motion planning between positions
 
-%% =========================================
-%  4. FORWARD KINEMATICS VERIFICATION
-% ==========================================
+% Number of trajectory steps between each pair of points
+N = 50;
 
-T_actual_start = robot.fkine(q_start);
-T_actual_target = robot.fkine(q_target);
+Q = [];
 
-actual_start = transl(T_actual_start);
-actual_target = transl(T_actual_target);
+for i = 1:5
 
-% Calculate position errors
-position_error_start = norm( ...
-    [start_x start_y start_z] - actual_start);
+    % Generate smooth joint trajectory
+    q_trajectory = jtraj( ...
+        q_waypoints(i,:), ...
+        q_waypoints(i+1,:), ...
+        N);
 
-position_error_target = norm( ...
-    [target_x target_y target_z] - actual_target);
+    % Avoid duplicating the connecting point
+    if i > 1
+        q_trajectory = q_trajectory(2:end,:);
+    end
 
-disp('========================================');
-disp('         KINEMATICS RESULTS');
-disp('========================================');
+    % Add trajectory to complete motion
+    Q = [Q; q_trajectory];
 
-disp('Desired start position:');
-disp([start_x start_y start_z]);
+end
 
-disp('Actual start position:');
-disp(actual_start);
-
-disp('Desired target position:');
-disp([target_x target_y target_z]);
-
-disp('Actual target position:');
-disp(actual_target);
-
-disp('Start position error (m):');
-disp(position_error_start);
-
-disp('Target position error (m):');
-disp(position_error_target);
-
-disp('Start joint angles (degrees):');
-disp(rad2deg(q_start));
-
-disp('Target joint angles (degrees):');
-disp(rad2deg(q_target));
-
-%% =========================================
-%  5. DISPLAY START POSITION
-% ==========================================
+%% 5. Animate the robot
 
 figure;
 
-robot.plot(q_start);
+robot.plot(Q, ...
+    'workspace', [-1.5 1.5 -1.5 1.5 -0.2 1.5], ...
+    'delay', 0.02);
 
-title('Robot - Start Position');
+title('Robot Motion Simulation');
 
-%% =========================================
-%  6. DISPLAY TARGET POSITION
-% ==========================================
+%% 6. Plot end-effector path
 
-figure;
+tcpPath = zeros(size(Q,1),3);
 
-robot.plot(q_target);
+for i = 1:size(Q,1)
 
-title('Robot - Target Position');
+    T = robot.fkine(Q(i,:));
+    p = transl(T);
 
-%% =========================================
-%  7. MOTION PLANNING
-% ==========================================
+    tcpPath(i,:) = p(:).';
 
-% Number of trajectory points
-steps = 100;
-
-% Generate smooth joint trajectory
-trajectory = jtraj(q_start, q_target, steps);
-
-%% =========================================
-%  8. ANIMATE ROBOT MOVEMENT
-% ==========================================
+end
 
 figure;
 
-robot.plot(trajectory);
+plot3(tcpPath(:,1), tcpPath(:,2), tcpPath(:,3), ...
+    'LineWidth', 2);
 
-title('Pick and Place - Robot Motion');
+hold on;
 
-%% =========================================
-%  9. SIMULATION SUMMARY
-% ==========================================
+plot3(P(:,1), P(:,2), P(:,3), ...
+    'ro', 'MarkerSize', 8, 'MarkerFaceColor', 'r');
 
-disp('========================================');
-disp('          SIMULATION COMPLETED');
-disp('========================================');
+grid on;
+axis equal;
 
-disp('Start position:');
-disp([start_x start_y start_z]);
+xlabel('X (m)');
+ylabel('Y (m)');
+zlabel('Z (m)');
 
-disp('Target position:');
-disp([target_x target_y target_z]);
+title('End-Effector Trajectory');
 
-disp('Number of trajectory points:');
-disp(steps);
-
-disp('Simulation finished successfully.');
+legend('TCP trajectory', 'Required positions');
