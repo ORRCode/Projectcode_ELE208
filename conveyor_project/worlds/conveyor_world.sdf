@@ -1,0 +1,348 @@
+
+<?xml version="1.0"?>
+<sdf version="1.9">
+
+  <world name="conveyor_world">
+
+    <!-- ========================================= -->
+    <!-- PHYSICS                                   -->
+    <!-- ========================================= -->
+
+    <physics name="physics" type="ignored">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+
+    <!-- Gazebo systems -->
+
+    <plugin
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
+    </plugin>
+
+    <plugin
+      filename="gz-sim-user-commands-system"
+      name="gz::sim::systems::UserCommands">
+    </plugin>
+
+    <plugin
+      filename="gz-sim-scene-broadcaster-system"
+      name="gz::sim::systems::SceneBroadcaster">
+    </plugin>
+
+    <!-- Required for camera rendering -->
+
+    <plugin
+      filename="gz-sim-sensors-system"
+      name="gz::sim::systems::Sensors">
+
+      <render_engine>ogre2</render_engine>
+
+    </plugin>
+
+    <!-- ========================================= -->
+    <!-- SUN                                       -->
+    <!-- ========================================= -->
+
+    <light type="directional" name="sun">
+
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+
+      <direction>-0.5 0.1 -0.9</direction>
+
+    </light>
+
+    <!-- ========================================= -->
+    <!-- GROUND                                    -->
+    <!-- ========================================= -->
+
+    <model name="ground_plane">
+
+      <static>true</static>
+
+      <link name="link">
+
+        <collision name="collision">
+
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>20 20</size>
+            </plane>
+          </geometry>
+
+        </collision>
+
+        <visual name="visual">
+
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>20 20</size>
+            </plane>
+          </geometry>
+
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+          </material>
+
+        </visual>
+
+      </link>
+
+    </model>
+
+    <!-- ========================================= -->
+    <!-- CONVEYOR                                  -->
+    <!-- Center: X = 0.8 m, Y = +1.0 m            -->
+    <!-- ========================================= -->
+
+    <model name="conveyor">
+
+      <static>true</static>
+
+      <pose>0.8 1.0 0.2 0 0 0</pose>
+
+      <link name="belt">
+
+        <collision name="collision">
+
+          <geometry>
+            <box>
+              <size>2.0 0.5 0.1</size>
+            </box>
+          </geometry>
+
+        </collision>
+
+        <visual name="visual">
+
+          <geometry>
+            <box>
+              <size>2.0 0.5 0.1</size>
+            </box>
+          </geometry>
+
+          <material>
+            <ambient>0.05 0.05 0.05 1</ambient>
+            <diffuse>0.05 0.05 0.05 1</diffuse>
+          </material>
+
+        </visual>
+
+      </link>
+
+    </model>
+
+    <!-- ========================================= -->
+    <!-- PACKAGE                                   -->
+    <!-- Y = +1.0 m, same as conveyor              -->
+    <!-- ========================================= -->
+
+    <model name="package">
+
+      <pose>1.6 1.0 0.35 0 0 0</pose>
+
+      <link name="package_link">
+
+        <inertial>
+
+          <mass>5.0</mass>
+
+          <inertia>
+            <ixx>0.0333</ixx>
+            <iyy>0.0333</iyy>
+            <izz>0.0333</izz>
+          </inertia>
+
+        </inertial>
+
+        <collision name="collision">
+
+          <geometry>
+            <box>
+              <size>0.2 0.2 0.2</size>
+            </box>
+          </geometry>
+
+        </collision>
+
+        <visual name="visual">
+
+          <geometry>
+            <box>
+              <size>0.2 0.2 0.2</size>
+            </box>
+          </geometry>
+
+          <material>
+            <ambient>1.0 0.0 0.0 1</ambient>
+            <diffuse>1.0 0.0 0.0 1</diffuse>
+          </material>
+
+        </visual>
+
+      </link>
+
+      <!-- Package velocity controlled via topic -->
+
+      <plugin
+        filename="gz-sim-velocity-control-system"
+        name="gz::sim::systems::VelocityControl">
+
+        <topic>/package/cmd_vel</topic>
+
+      </plugin>
+
+    </model>
+
+    <!-- ========================================= -->
+    <!-- EURO PALLET                               -->
+    <!-- Dimensions: 1.2 x 0.8 x 0.144 m           -->
+    <!-- Center: X = 0.0, Y = -0.8 m              -->
+    <!-- ========================================= -->
+
+    <model name="euro_pallet">
+
+      <static>true</static>
+
+      <pose>0 -0.8 0 0 0 0</pose>
+
+      <link name="pallet_link">
+
+        <!-- Simple collision box -->
+
+        <collision name="collision">
+
+          <pose>0 0 0.072 0 0 0</pose>
+
+          <geometry>
+            <box>
+              <size>1.2 0.8 0.144</size>
+            </box>
+          </geometry>
+
+        </collision>
+
+        <!-- Imported STL pallet -->
+
+        <visual name="visual">
+
+          <!-- STL uses inches and corner origin.
+               Rotate 90 degrees and center mesh. -->
+
+          <pose>0.6 -0.4 0 0 0 1.57079632679</pose>
+
+          <geometry>
+            <mesh>
+              <uri>model://conveyor_project/meshes/euro_pallet.stl</uri>
+              <scale>0.0254 0.0254 0.0254</scale>
+            </mesh>
+          </geometry>
+
+          <material>
+            <ambient>0.65 0.45 0.25 1</ambient>
+            <diffuse>0.65 0.45 0.25 1</diffuse>
+          </material>
+
+        </visual>
+
+      </link>
+
+    </model>
+
+    <!-- ========================================= -->
+    <!-- CAMERA                                    -->
+    <!-- Fixed RGB camera above conveyor           -->
+    <!-- ========================================= -->
+
+    <model name="conveyor_camera">
+
+      <static>true</static>
+
+      <!-- Camera centered above the conveyor -->
+
+      <pose>0.8 1.0 1.8 0 0 0</pose>
+
+      <link name="camera_link">
+
+        <!-- Camera housing -->
+
+        <visual name="camera_body">
+
+          <geometry>
+            <box>
+              <size>0.08 0.08 0.06</size>
+            </box>
+          </geometry>
+
+          <material>
+            <ambient>0.1 0.1 0.1 1</ambient>
+            <diffuse>0.1 0.1 0.1 1</diffuse>
+          </material>
+
+        </visual>
+
+        <!-- RGB camera sensor -->
+
+        <sensor name="camera" type="camera">
+
+          <always_on>true</always_on>
+          <update_rate>30</update_rate>
+
+          <topic>/conveyor_camera/image</topic>
+
+          <!-- Point camera optical axis down -->
+
+          <pose>0 0 0 0 1.57079632679 0</pose>
+
+          <camera>
+
+            <horizontal_fov>1.57</horizontal_fov>
+
+            <image>
+              <width>640</width>
+              <height>480</height>
+              <format>R8G8B8</format>
+            </image>
+
+            <clip>
+              <near>0.1</near>
+              <far>10.0</far>
+            </clip>
+
+          </camera>
+
+        </sensor>
+
+      </link>
+
+    </model>
+
+    <!-- ========================================= -->
+    <!-- VACUUM GRIPPER                            -->
+    <!-- ========================================= -->
+
+    <!--
+      The old libattachable_joint_plugin.so was
+      removed because it is not installed.
+
+      The new DetachableJoint plugin is configured
+      in conveyor_ur10e.urdf.xacro.
+    -->
+
+  </world>
+
+</sdf>
