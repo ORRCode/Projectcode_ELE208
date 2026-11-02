@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <!-- Gazebo ROS2 Control -->
+    <gazebo>
+        <plugin filename="gz_ros2_control-system"
+                name="gz_ros2_control::GazeboSimROS2ControlPlugin">
+            <parameters>$(find conveyor_project)/config/mdh_controller.yaml</parameters>
+        </plugin>
+    </gazebo>
+
+    <!-- Seks styrbare ledd -->
+    <ros2_control name="GazeboSimSystem" type="system">
+
+        <hardware>
+            <plugin>gz_ros2_control/GazeboSimSystem</plugin>
+        </hardware>
+
+        <xacro:macro name="controlled_joint" params="joint_name">
+            <joint name="${joint_name}">
+                <command_interface name="position"/>
+                <state_interface name="position"/>
+                <state_interface name="velocity"/>
+            </joint>
+        </xacro:macro>
+
+        <xacro:controlled_joint joint_name="joint_1"/>
+        <xacro:controlled_joint joint_name="joint_2"/>
+        <xacro:controlled_joint joint_name="joint_3"/>
+        <xacro:controlled_joint joint_name="joint_4"/>
+        <xacro:controlled_joint joint_name="joint_5"/>
+        <xacro:controlled_joint joint_name="joint_6"/>
+
+    </ros2_control>
+
+</robot>

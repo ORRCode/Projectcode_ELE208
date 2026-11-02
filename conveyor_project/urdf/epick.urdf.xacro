@@ -1,0 +1,130 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- ================================================== -->
+  <!-- ROBOTIQ EPICK FOUR-CUP GRIPPER                      -->
+  <!-- ================================================== -->
+
+  <xacro:macro name="epick" params="parent">
+
+    <!--
+      Robotiq EPick vacuum gripper
+
+      Mass: 2.0 kg
+
+      Mesh:
+      meshes/epick_four_cup.stl
+
+      Mounting offset: 60 mm
+      TCP offset from parent: 143.025 mm
+    -->
+
+    <!-- ================================================== -->
+    <!-- GRIPPER LINK                                       -->
+    <!-- ================================================== -->
+
+    <link name="epick_link">
+
+      <inertial>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <mass value="2.0"/>
+        <inertia
+          ixx="0.01"
+          ixy="0.0"
+          ixz="0.0"
+          iyy="0.01"
+          iyz="0.0"
+          izz="0.01"/>
+      </inertial>
+
+      <!-- Actual EPick STL model -->
+
+      <visual>
+
+        <origin
+          xyz="0 0 0"
+          rpy="0 0 3.14159"/>
+
+        <geometry>
+          <mesh
+            filename="package://conveyor_project/meshes/epick_four_cup.stl"
+            scale="0.001 0.001 0.001"/>
+        </geometry>
+
+        <material name="epick_dark">
+          <color rgba="0.15 0.15 0.15 1.0"/>
+        </material>
+
+      </visual>
+
+      <!-- Approximate collision geometry -->
+
+      <collision>
+
+        <origin
+          xyz="0 0 0.04"
+          rpy="0 0 0"/>
+
+        <geometry>
+          <cylinder
+            radius="0.09"
+            length="0.08"/>
+        </geometry>
+
+      </collision>
+
+    </link>
+
+    <!-- ================================================== -->
+    <!-- ATTACH EPICK TO ROBOT LINK 6                       -->
+    <!-- ================================================== -->
+
+    <joint name="epick_joint" type="fixed">
+
+      <parent link="${parent}"/>
+      <child link="epick_link"/>
+
+      <!-- Original mounting orientation -->
+      <origin
+        xyz="0 0 0.06"
+        rpy="1.5708 0 1.5708"/>
+
+    </joint>
+
+    <!-- Preserve gripper link in Gazebo -->
+
+    <gazebo reference="epick_joint">
+      <preserveFixedJoint>true</preserveFixedJoint>
+    </gazebo>
+
+    <!-- ================================================== -->
+    <!-- TCP                                               -->
+    <!-- ================================================== -->
+
+    <!--
+      TCP is defined relative to the parent flange.
+
+      Mounting offset:    0.060000 m
+      Suction cup offset: 0.083025 m
+      Total offset:       0.143025 m
+
+      The TCP orientation is currently aligned
+      with the parent flange.
+    -->
+
+    <link name="tcp_link"/>
+
+    <joint name="tcp_joint" type="fixed">
+
+      <parent link="${parent}"/>
+      <child link="tcp_link"/>
+
+      <origin
+        xyz="0 0 0.143025"
+        rpy="0 0 0"/>
+
+    </joint>
+
+  </xacro:macro>
+
+</robot>
