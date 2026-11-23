@@ -1,0 +1,463 @@
+<?xml version="1.0"?>
+
+<robot name="mdh_robot" xmlns:xacro="http://ros.org/wiki/xacro">
+  <xacro:include filename="$(find semester_project_ele208)/urdf/inertial_macros.urdf.xacro" />
+
+  <material name="blue">
+    <color rgba="0.12 0.38 0.82 1.0"/>
+  </material>
+
+  <material name="dark">
+    <color rgba="0.18 0.20 0.24 1.0"/>
+  </material>
+
+  <material name="grey">
+    <color rgba="0.55 0.58 0.62 1.0"/>
+  </material>
+
+  <!-- colors -->
+  <material name="steel">
+    <color rgba="0.42 0.45 0.50 1.0"/>
+  </material>
+  <material name="navy">
+    <color rgba="0.08 0.20 0.48 1.0"/>
+  </material>
+  <material name="sky">
+    <color rgba="0.30 0.58 0.92 1.0"/>
+  </material>
+  <material name="teal">
+    <color rgba="0.05 0.58 0.58 1.0"/>
+  </material>
+  <material name="black">
+    <color rgba="0.06 0.06 0.06 1.0"/>
+  </material>
+
+  <!-- cylinder joints -->
+  <material name="joint_orange">
+    <color rgba="0.95 0.45 0.08 1.0"/>
+  </material>
+  <material name="pin_yellow">
+    <color rgba="1.0 0.85 0.0 1.0"/>
+  </material>
+
+  <!-- Koordinatakser (TCP) -->
+  <material name="axis_red">
+    <color rgba="1.0 0.1 0.1 1.0"/>
+  </material>
+  <material name="axis_green">
+    <color rgba="0.1 0.9 0.1 1.0"/>
+  </material>
+  <material name="axis_blue">
+    <color rgba="0.15 0.3 1.0 1.0"/>
+  </material>
+
+  <xacro:macro name="joint_marker" params="cap_radius cap_length">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="${cap_radius}" length="${cap_length}"/>
+      </geometry>
+      <material name="joint_orange"/>
+    </visual>
+  </xacro:macro>
+
+  <!-- Fundament -->
+
+  <link name="world"/>
+
+  <joint name="world_to_base" type="fixed">
+    <parent link="world"/>
+    <child link="foundation_link"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+
+  <link name="foundation_link">
+    <visual>
+      <origin xyz="0 0 0.25" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.22" length="0.50"/>
+      </geometry>
+      <material name="steel"/>
+    </visual>
+
+    <collision>
+      <origin xyz="0 0 0.25" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.22" length="0.50"/>    
+      </geometry>
+    </collision>
+
+    <xacro:inertial_cylinder length="0.5" radius="0.22" density="1">
+      <origin xyz="0 0 0.25" rpy="0 0 0"/>
+    </xacro:inertial_cylinder>
+  </link>
+
+    <!-- Joint 1 -->
+
+  <joint name="foundation_to_base" type="revolute">
+    <origin xyz="0.0 0.0 0.5" rpy="0.0 0.0 0.0"/>
+    <child link="base_link"/>
+    <parent link="foundation_link"/>
+    <axis xyz="0 0 1" rpy="0 0 0"/>
+    <limit effort="100" velocity="2.09" lower="-${2*pi}" upper="${2*pi}"/>
+    <dynamics damping="0.7" friction="0.1"/>
+  </joint>
+
+    <!-- Link 1 -->
+
+  <link name="base_link">
+    <visual>
+      <origin xyz="0 0 0.1" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.095" length="0.20"/>
+      </geometry>
+      <material name="navy"/>
+    </visual>
+
+    <!-- Ledd-markoer -->
+    <xacro:joint_marker cap_radius="0.13" cap_length="0.03"/>
+
+    <collision>
+      <origin xyz="0 0 0.1" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.095" length="0.2"/>    
+      </geometry>
+    </collision>
+
+    <xacro:inertial_cylinder length="0.2" radius="0.095" density="1300">
+      <origin xyz="0 0 0.1" rpy="0 0 0"/>
+    </xacro:inertial_cylinder>
+  </link>
+
+    <!-- Joint 2 -->
+
+  <joint name="DH_shoulder" type="fixed">
+    <parent link="base_link"/>
+    <child link="DH_shoulder_link"/>
+    <origin xyz="0 0 0.2" rpy="${pi/2} 0 0"/>
+  </joint>
+
+  <link name="DH_shoulder_link"/>
+
+  <joint name="shoulder" type="revolute">
+    <origin xyz="0.0 0.0 0" rpy="0.0 0.0 0.0"/>
+    <child link="shoulder_link"/>
+    <parent link="DH_shoulder_link"/>
+    <axis xyz="0 0 1" rpy="0 0 0"/>
+    <limit effort="330" velocity="2.09" lower="-${pi}" upper="${pi}"/>
+    <dynamics damping="0.7" friction="0.1"/>
+  </joint>
+
+    <!-- Link 2 -->
+
+  <link name="shoulder_link">
+    <visual>
+      <origin xyz="-0.3 0 0" rpy="0 ${pi/2} 0"/>
+      <geometry>
+        <cylinder radius="0.045" length="0.6"/>
+      </geometry>
+      <material name="blue"/>
+    </visual>
+
+    <!-- Ledd-markoer -->
+    <xacro:joint_marker cap_radius="0.065" cap_length="0.26"/>
+
+    <collision>
+      <origin xyz="-0.3 0 0" rpy="0 ${pi/2} 0"/>
+      <geometry>
+        <cylinder radius="0.045" length="0.60"/>    
+      </geometry>
+    </collision>
+
+    <xacro:inertial_cylinder length="0.6" radius="0.045" density="3400">
+      <origin xyz="-0.3 0 0" rpy="0 ${pi/2} 0"/>
+    </xacro:inertial_cylinder>
+  </link>
+
+    <!-- Joint 3 -->
+
+  <joint name="DH_elbow" type="fixed">
+    <parent link="shoulder_link"/>
+    <child link="DH_elbow_link"/>
+    <origin xyz="-0.6 0 0" rpy="0 0 0"/>
+  </joint>
+
+  <link name="DH_elbow_link"/>
+
+  <joint name="elbow" type="revolute">
+    <origin xyz="0.0 0.0 0" rpy="0.0 0.0 0.0"/>
+    <child link="elbow_link"/>
+    <parent link="DH_elbow_link"/>
+    <axis xyz="0 0 1" rpy="0 0 0"/>
+    <limit effort="150" velocity="3.14" lower="-${pi}" upper="${pi}"/>
+    <dynamics damping="0.7" friction="0.1"/>
+  </joint>
+
+    <!-- Link 3 -->
+
+  <link name="elbow_link">
+    <visual>
+      <origin xyz="-0.3 0 0" rpy="0 ${pi/2} 0"/>
+      <geometry>
+        <cylinder radius="0.03525" length="0.60"/>
+      </geometry>
+      <material name="sky"/>
+    </visual>
+
+    <!-- Ledd-markoer -->
+    <xacro:joint_marker cap_radius="0.06" cap_length="0.14"/>
+
+    <collision>
+      <origin xyz="-0.3 0 0" rpy="0 ${pi/2} 0"/>
+      <geometry>
+        <cylinder radius="0.03525" length="0.60"/>    
+      </geometry>
+    </collision>
+
+    <xacro:inertial_cylinder length="0.6" radius="0.03525" density="1700">
+      <origin xyz="-0.3 0 0" rpy="0 ${pi/2} 0"/>
+    </xacro:inertial_cylinder>
+  </link>
+
+    <!-- Joint 4 -->
+
+  <joint name="DH_wrist1" type="fixed">
+    <parent link="elbow_link"/>
+    <child link="DH_wrist1_link"/>
+    <origin xyz="-0.6 0 0" rpy="0 0 0"/>
+  </joint>
+
+  <link name="DH_wrist1_link"/>
+
+  <joint name="wrist1" type="revolute">
+    <origin xyz="0.0 0.0 0" rpy="0.0 0.0 0.0"/>
+    <child link="wrist1_link"/>
+    <parent link="DH_wrist1_link"/>
+    <axis xyz="0 0 1" rpy="0 0 0"/>
+    <limit effort="100" velocity="3.14" lower="-${pi}" upper="${pi}"/>
+    <dynamics damping="0.7" friction="0.1"/>
+  </joint>
+
+    <!-- Link 4 -->
+
+  <link name="wrist1_link">
+    <visual>
+      <origin xyz="0 0 0.1" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.03525" length="0.20"/>
+      </geometry>
+      <material name="teal"/>
+    </visual>
+
+    <!-- Ledd-markoer -->
+    <xacro:joint_marker cap_radius="0.05" cap_length="0.06"/>
+
+    <collision>
+      <origin xyz="0 0 0.1" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.03525" length="0.20"/>    
+      </geometry>
+    </collision>
+
+    <xacro:inertial_cylinder length="0.2" radius="0.03525" density="2700">
+      <origin xyz="0 0 0.1" rpy="0 0 0"/>
+    </xacro:inertial_cylinder>
+  </link>
+
+    <!-- Joint 5 -->
+
+  <joint name="DH_wrist2" type="fixed">
+    <parent link="wrist1_link"/>
+    <child link="DH_wrist2_link"/>
+    <origin xyz="0 0 0.2" rpy="${pi/2} 0 0"/>
+  </joint>
+
+  <link name="DH_wrist2_link"/>
+
+  <joint name="wrist2" type="revolute">
+    <origin xyz="0.0 0 0" rpy="0.0 0.0 0.0"/>
+    <child link="wrist2_link"/>
+    <parent link="DH_wrist2_link"/>
+    <axis xyz="0 0 1" rpy="0 0 0"/>
+    <limit effort="100" velocity="3.14" lower="-${pi}" upper="${pi}"/>
+    <dynamics damping="0.7" friction="0.1"/>
+  </joint>
+
+  <!-- Link 5 -->
+
+  <link name="wrist2_link">
+    <visual>
+      <origin xyz="0 0 0.05" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.03525" length="0.10"/>
+      </geometry>
+      <material name="teal"/>
+    </visual>
+
+    <!-- Ledd-markoer -->
+    <xacro:joint_marker cap_radius="0.045" cap_length="0.05"/>
+
+    <collision>
+      <origin xyz="0 0 0.05" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.03525" length="0.10"/>    
+      </geometry>
+    </collision>
+
+    <xacro:inertial_cylinder length="0.1" radius="0.03525" density="5100">
+      <origin xyz="0 0 0.05" rpy="0 0 0"/>
+    </xacro:inertial_cylinder>
+  </link>
+
+    <!-- Joint 6 -->
+
+  <joint name="DH_wrist3" type="fixed">
+    <parent link="wrist2_link"/>
+    <child link="DH_wrist3_link"/>
+    <origin xyz="0 0 0.1" rpy="${-pi/2} 0 0"/>
+  </joint>
+
+  <link name="DH_wrist3_link"/>
+
+  <joint name="wrist3" type="revolute">
+    <origin xyz="0.0 0 0" rpy="0.0 0.0 0.0"/>
+    <child link="wrist3_link"/>
+    <parent link="DH_wrist3_link"/>
+    <axis xyz="0 0 1" rpy="0 0 0"/>
+    <limit effort="100" velocity="3.14" lower="-${pi}" upper="${pi}"/>
+    <dynamics damping="0.7" friction="0.1"/>
+  </joint>
+
+  <!-- Link 6 -->
+
+  <link name="wrist3_link">
+    <visual>
+      <origin xyz="0 0 0.05" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.03525" length="0.10"/>
+      </geometry>
+      <material name="dark"/>
+    </visual>
+
+    <!-- Ledd-markoer -->
+    <xacro:joint_marker cap_radius="0.045" cap_length="0.05"/>
+
+    <collision>
+      <origin xyz="0 0 0.05" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.03525" length="0.10"/>    
+      </geometry>
+    </collision>
+
+    <xacro:inertial_cylinder length="0.1" radius="0.03525" density="1600">
+      <origin xyz="0 0 0.05" rpy="0 0 0"/>
+    </xacro:inertial_cylinder>
+  </link>
+
+  <joint name="tool0_joint" type="fixed">
+    <parent link="wrist3_link"/>
+    <child link="tool0"/>
+    <origin xyz="0 0 0.1" rpy="0 0 0"/>
+  </joint>
+
+  <link name="tool0"/>
+
+<link name="epick_link">
+  <visual>
+    <origin xyz="0 -0.1 0" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://semester_project_ele208/meshes/epick_four_cup.stl"
+            scale="0.001 0.001 0.001"/>
+    </geometry>
+    <material name="black"/>
+  </visual>
+  <collision>
+    <origin xyz="0 -0.098 0" rpy="${pi/2} 0 0"/>
+    <geometry><cylinder radius="0.05" length="0.196"/></geometry>
+  </collision>
+  <xacro:inertial_cylinder length="0.196" radius="0.05" density="1300">
+    <origin xyz="0 -0.098 0" rpy="${pi/2} 0 0"/>
+  </xacro:inertial_cylinder>
+</link>
+
+<joint name="epick_joint" type="fixed">
+  <parent link="tool0"/>
+  <child link="epick_link"/>
+  <origin xyz="0 0 0" rpy="${-pi/2} 0 0"/>
+</joint>
+
+<link name="tcp_link">
+  <!-- Koordinatakser: x raud, y gronn, z blaa -->
+  <visual>
+    <origin xyz="0.04 0 0" rpy="0 0 0"/>
+    <geometry><box size="0.08 0.006 0.006"/></geometry>
+    <material name="axis_red"/>
+  </visual>
+  <visual>
+    <origin xyz="0 0.04 0" rpy="0 0 0"/>
+    <geometry><box size="0.006 0.08 0.006"/></geometry>
+    <material name="axis_green"/>
+  </visual>
+  <visual>
+    <origin xyz="0 0 0.04" rpy="0 0 0"/>
+    <geometry><box size="0.006 0.006 0.08"/></geometry>
+    <material name="axis_blue"/>
+  </visual>
+</link>
+<joint name="tcp_joint" type="fixed">
+  <parent link="tool0"/>
+  <child link="tcp_link"/>
+  <origin xyz="0 0 0.196" rpy="0 0 0"/>   
+</joint>
+
+<ros2_control name="GazeboSimSystem" type="system">
+  <hardware>
+    <plugin>gz_ros2_control/GazeboSimSystem</plugin>
+  </hardware>
+
+  <xacro:macro name="joint_if" params="name">
+    <joint name="${name}">
+      <command_interface name="position"/>
+      <state_interface name="position">
+        <param name="initial_value">0.0</param>
+      </state_interface>
+      <state_interface name="velocity"/>
+    </joint>
+  </xacro:macro>
+
+  <xacro:joint_if name="foundation_to_base"/>
+  <xacro:joint_if name="shoulder"/>
+  <xacro:joint_if name="elbow"/>
+  <xacro:joint_if name="wrist1"/>
+  <xacro:joint_if name="wrist2"/>
+  <xacro:joint_if name="wrist3"/>
+</ros2_control>
+
+<gazebo>
+  <plugin filename="gz_ros2_control-system"
+          name="gz_ros2_control::GazeboSimROS2ControlPlugin">
+    <parameters>$(find semester_project_ele208)/config/controllers.yaml</parameters>
+    <position_proportional_gain>0.07</position_proportional_gain>
+  </plugin>
+</gazebo>
+
+<gazebo reference="epick_joint">
+  <preserveFixedJoint>true</preserveFixedJoint>
+</gazebo>
+
+<gazebo>
+  <plugin filename="gz-sim-detachable-joint-system"
+          name="gz::sim::systems::DetachableJoint">
+    <parent_link>epick_link</parent_link>
+    <child_model>package</child_model>
+    <child_link>package_link</child_link>
+    <attach_topic>/vacuum/attach</attach_topic>
+    <detach_topic>/vacuum/detach</detach_topic>
+  </plugin>
+</gazebo>
+
+
+
+</robot>
+
+  
