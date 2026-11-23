@@ -1,0 +1,188 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="my_world">
+
+    <model name="belt">
+      <static>true</static>
+      <pose>0.8 1.0 0.2 0 0 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry><box><size>2.0 0.5 0.1</size></box></geometry>
+          <material>
+            <ambient>0.15 0.15 0.15 1</ambient>
+            <diffuse>0.25 0.25 0.25 1</diffuse>
+          </material>
+        </visual>
+        <collision name="collision">
+          <geometry><box><size>2.0 0.5 0.1</size></box></geometry>
+          <surface>
+            <friction><ode><mu>0.01</mu><mu2>0.01</mu2></ode></friction>
+          </surface>
+        </collision>
+      </link>
+    </model>
+
+    <model name="belt_sled">
+      <pose>1.6 1.0 0.252 0 0 0</pose>
+      <link name="link">
+        <inertial>
+          <mass>1.0</mass>
+          <inertia>
+            <ixx>0.0134</ixx><iyy>0.0134</iyy><izz>0.0267</izz>
+            <ixy>0</ixy><ixz>0</ixz><iyz>0</iyz>
+          </inertia>
+        </inertial>
+
+        <collision name="collision">
+          <geometry><box><size>0.4 0.4 0.004</size></box></geometry>
+          <surface>
+            <friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction>
+          </surface>
+        </collision>
+      </link>
+      <plugin filename="gz-sim-velocity-control-system"
+              name="gz::sim::systems::VelocityControl">
+        <topic>/belt/cmd_vel</topic>
+      </plugin>
+    </model>
+
+    <model name="package">
+      <pose>1.6 1.0 0.354 0 0 0</pose>
+      <link name="package_link">
+        <inertial>
+          <mass>5.0</mass>
+          <inertia>
+            <ixx>0.0333</ixx><iyy>0.0333</iyy><izz>0.0333</izz>
+            <ixy>0</ixy><ixz>0</ixz><iyz>0</iyz>
+          </inertia>
+        </inertial>
+        <visual name="visual">
+          <geometry><box><size>0.2 0.2 0.2</size></box></geometry>
+          <material>
+            <ambient>0.7 0.5 0.2 1</ambient>
+            <diffuse>0.8 0.6 0.3 1</diffuse>
+          </material>
+        </visual>
+        <collision name="collision">
+          <geometry><box><size>0.2 0.2 0.2</size></box></geometry>
+          <surface>
+            <friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction>
+          </surface>
+        </collision>
+      </link>
+    </model>
+
+    <model name="pallet">
+      <static>true</static>
+      <pose>0 -1.2 0 0 0 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <pose>-0.4 -0.6 0 0 0 0</pose>
+          <geometry>
+            <mesh>
+              <uri>model://semester_project_ele208/meshes/euro_pallet.stl</uri>
+              <scale>0.0254 0.0254 0.0254</scale>
+            </mesh>
+          </geometry>
+          <material>
+            <ambient>0.60 0.42 0.25 1</ambient>
+            <diffuse>0.72 0.52 0.30 1</diffuse>
+            <specular>0.05 0.05 0.05 1</specular>
+          </material>
+        </visual>
+        <collision name="collision">
+          <pose>0 0 0.072 0 0 0</pose>
+          <geometry><box><size>0.8 1.2 0.144</size></box></geometry>
+        </collision>
+      </link>
+    </model>
+
+    <model name="conveyor_camera">
+      <static>true</static>
+      <pose>0.8 1.0 1.8 0 1.5708 0</pose>
+      <link name="link">
+        <sensor name="camera" type="camera">
+          <always_on>true</always_on>
+          <update_rate>5</update_rate>
+          <topic>conveyor_camera/image</topic>
+          <camera>
+            <horizontal_fov>1.57</horizontal_fov>
+            <image>
+              <width>320</width><height>240</height>
+              <format>L8</format>
+            </image>
+            <clip><near>0.1</near><far>5</far></clip>
+          </camera>
+        </sensor>
+      </link>
+    </model>
+
+    <physics name="1ms" type="ignored">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+    <plugin
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
+    </plugin>
+    <plugin
+      filename="gz-sim-user-commands-system"
+      name="gz::sim::systems::UserCommands">
+    </plugin>
+    <plugin
+      filename="gz-sim-scene-broadcaster-system"
+      name="gz::sim::systems::SceneBroadcaster">
+    </plugin>
+    <plugin
+      filename="gz-sim-contact-system"
+      name="gz::sim::systems::Contact">
+    </plugin>
+    <plugin
+      filename="gz-sim-sensors-system"
+      name="gz::sim::systems::Sensors">
+      <render_engine>ogre2</render_engine>
+    </plugin>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+          <material>
+            <ambient>0.1 0.1 0.1 1</ambient>
+            <diffuse>0.12 0.12 0.12 1</diffuse>
+            <specular>0 0 0 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+  </world>
+</sdf>
