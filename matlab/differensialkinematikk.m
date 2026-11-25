@@ -44,49 +44,8 @@ disp('JACOBIAN-MATRISE')
 disp('======================================')
 disp(J)
 
-
 %% =========================================================
-% BEREKNING A
-%
-% ME KJENNER LEDDHASTIGHEITENE OG VIL FINNE HASTIGHEITA TIL SUGEKOPPEN.
-%% =========================================================
-
-% Vel hastigheita til kvart ledd (rad/s).
-
-q_dot = [0.1;
-         0.2;
-         0.1;
-         0.1;
-         0.1;
-         0.1];
-
-% Berekn hastigheita til sugekoppen.
-v = J * q_dot;
-
-% Dei tre forste verdiane er linear hastigheit.
-v_xyz = v(1:3);
-
-% Finn total linear hastigheit.
-speed_A = norm(v_xyz);
-
-disp(' ')
-disp('======================================')
-disp('BEREKNING A')
-disp('======================================')
-
-disp('Valde leddhastigheiter (rad/s):')
-disp(q_dot)
-
-disp('Sugekopphastigheit [vx; vy; vz] (m/s):')
-disp(v_xyz)
-
-fprintf('Total hastigheit: %.4f m/s\n',speed_A);
-
-
-%% =========================================================
-% BEREKNING B
-%
-% KJENNER ONSKJA HASTIGHEIT TIL SUGEKOPPEN OG VIL FINNE NODVENDIGE LEDDHASTIGHEITER.
+% KJENNER ØNSKJA HASTIGHEIT TIL SUGEKOPPEN OG VIL FINNE NODVENDIGE LEDDHASTIGHEITER.
 % Prosjektkrav: minst 0.5 m/s under plukkerorsla.
 % Vel 0.5 m/s langs negativ x-retning og ingen rotasjon.
 %% =========================================================
@@ -114,7 +73,7 @@ disp('Nodvendige leddhastigheiter (rad/s):')
 disp(q_dot_B)
 
 
-%% STEG 4 - KONTROLLER BEREKNING B
+%% STEG 4 - KONTROLLER BEREKNING 
 %
 % Brukar dei berekna leddhastigheitene for a kontrollere om vi oppnar 0.5 m/s.
 
